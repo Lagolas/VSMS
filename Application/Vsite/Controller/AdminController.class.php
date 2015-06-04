@@ -21,8 +21,16 @@ class AdminController extends IniController{
     public function artList(){
         $where['model'] = 1;
         $catelist = $this->_getCategorys($where);
-        if(I('post.cid','intval')>0){
-            $where_art['cid'] = I('post.cid','','intval');
+        $post_cid= I('post.cid','','intval');
+        if($post_cid>0){
+            $cid[] = $post_cid;
+            foreach($catelist as $k=>$v){
+                $path = explode('-',$v['path']);
+                if(in_array($post_cid,$path)){
+                    $cid[] = $v['id'];
+                }
+            }
+            $where_art['cid'] = array('in',$cid);
         }
         if(I('post.title')){
             $tit = I('post.title');
@@ -149,6 +157,10 @@ class AdminController extends IniController{
      * 图集管理
      *************/
   public function addPic(){
+      $where['model'] = 2;
+      $where['state'] = 1;
+      $catelist = $this->_getCategorys($where);
+      $this->assign('catelist',$catelist);
       $this->display();
   }
   
@@ -229,9 +241,11 @@ class AdminController extends IniController{
         $where['uid'] = $this->user['id'];
         $info=M('categorys')->field("id,cate_name,model,path,concat(path,'-',id) as newpath")->order('newpath')->where($where)->select();
         foreach($info as $key=>$val){
-            $info[$key]['num']=6*substr_count($info[$key]['path'],'-');
+            $result[$val['id']] = $val;
+            $result[$val['id']]['num'] = 6*substr_count($info[$key]['path'],'-');
+            //$info[$key]['num']=6*substr_count($info[$key]['path'],'-');
         }
-        return $info;
+        return $result;
     }
     // 文件上传
     private function _upload($dir) {
