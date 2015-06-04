@@ -59,6 +59,7 @@
                                                 <th>ID</th>
                                                 <th>标题</th>
                                                 <th>发布时间</th>
+                                                <th>所属栏目</th>
                                                 <th>操作</th>
                                             </tr>
                                         </thead>
@@ -70,6 +71,7 @@
                                                 </td>
                                             	<td><a href="{:U('index/article',array('id'=>$data['id']))}" target="_blank">{$data['title']}</a></td>
                                             	<td>{$data['ctime']|date="Y-m-d H:i:s",###}</td>
+                                                <td>{$catelist[$data['cid']]['cate_name']}</td>
                                             	<td><div class="action-buttons">
                                                 <a class="green" href="{:U('admin/editArt',array('id'=>$data['id']))}">
                                                     <i class="icon-pencil bigger-130"></i>
