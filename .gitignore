@@ -1,0 +1,8 @@
+# Windows:
+*.db
+*.ini
+
+#bm
+Application/Runtime
+Application/Runtime/*
+Public/Upload/*
