@@ -23,13 +23,7 @@ class AdminController extends IniController{
         $catelist = $this->_getCategorys($where);
         $post_cid= I('post.cid','','intval');
         if($post_cid>0){
-            $cid[] = $post_cid;
-            foreach($catelist as $k=>$v){
-                $path = explode('-',$v['path']);
-                if(in_array($post_cid,$path)){
-                    $cid[] = $v['id'];
-                }
-            }
+            $cid = $this->_getSubCate($post_cid, $catelist);
             $where_art['cid'] = array('in',$cid);
         }
         if(I('post.title')){
@@ -270,5 +264,16 @@ class AdminController extends IniController{
            $return['info'] = $info;
        }
        return $return;
+    }
+    
+    private function _getSubCate($post_cid,$catelist){
+        $cid[] = $post_cid;
+        foreach($catelist as $v){
+            $path = explode('-',$v['path']);
+            if(in_array($post_cid,$path)){
+                $cid[] = $v['id'];
+            }
+        }
+        return $cid;
     }
 }
