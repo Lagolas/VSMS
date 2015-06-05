@@ -150,17 +150,89 @@ class AdminController extends IniController{
     /*************
      * 图集管理
      *************/
-  public function addPic(){
-      $where['model'] = 2;
-      $where['state'] = 1;
-      $catelist = $this->_getCategorys($where);
-      $this->assign('catelist',$catelist);
-      $this->display();
-  }
-  
-  public function goAddPic(){
-      
-  }
+    public function picList(){
+        $where['model'] = 2;
+        $catelist = $this->_getCategorys($where);
+        $post_cid= I('post.cid','','intval');
+        if($post_cid>0){
+            $cid = $this->_getSubCate($post_cid, $catelist);
+            $where_art['cid'] = array('in',$cid);
+        }
+        if(I('post.title')){
+            $tit = I('post.title');
+            $where_art['title'] = array('like',"%{$tit}%");
+        }
+        $db = M('picgroup');
+        $where_art['uid'] = $this->user['id'];
+        $count = $db->where($where_art)->count();
+        $Page = new \Think\Page($count);
+        $piclist = $db->where($where_art)->field('id,uid,cid,title,ctime,listorder,state')->limit($Page->firstRow.','.$Page->listRows)->order('listorder DESC,id DESC')->select();
+        $cid = I('get.cid')?I('get.cid','','intval'):I('post.cid','','intval');
+        $title = I('get.title')?I('get.title'):I('post.title');
+        $this->assign('cid',$cid);
+        $this->assign('title',$title);
+        $this->assign('piclist',$piclist);
+        $this->assign('page',$Page->show());
+        $this->assign('catelist',$catelist);
+        $this->display();
+    }
+
+    public function addPic(){
+        $where['model'] = 2;
+        $where['state'] = 1;
+        $catelist = $this->_getCategorys($where);
+        $this->assign('catelist',$catelist);
+        $this->display();
+    }
+    
+    public function editPicGroup(){
+        
+    }
+    
+    public function delPicGroup(){
+        $where['id'] = I('get.id','','intval');
+        $where['uid'] = $this->user['id'];
+        if(M('picgroup')->where($where)->delete()){
+            $this->success('删除成功');
+        }else{
+            $this->error('删除失败');
+        }
+    }
+
+    public function goAddPic(){
+      unset($_FILES['files']);
+      if(!IS_POST) exit;
+        //检查必填项以及长度
+        $data['title'] = I('post.title');
+        $data['cid'] = I('post.cid','','intval');
+        if(!$data['title'] || !$data['cid'] || strlen($data['title'])>255){
+            $this->error('文章标题或栏目不合法');
+        }
+        $checkmodel['id'] = $data['cid'];
+        $checkmodel['uid'] = $this->user['id'];
+        $model = M('categorys')->where($checkmodel)->getField('model');
+        if(intval($model)!==2){$this->error('栏目选择错误');}
+        $data['keyword'] = I('post.keyword');
+        $data['description'] = I('post.description');
+        $data['etime'] = $data['ctime'] = NOW_TIME;
+        $data['content'] = $_POST['editorValue'];
+        $data['listorder'] = I('post.listorder','','intval');
+        $data['pics'] = serialize(I('post.picgroup'));
+        if($_FILES['thumb']['name']){
+            $info = $this->_upload();
+            if($info['state']){
+                $data['thumb'] = UPLOAD_ROOT_PATH.$info['info']['thumb']['savepath'].$info['info']['thumb']['savename'];
+            }else{
+                $this->error($info['info']);
+            }
+        }
+        $data['uid'] = $this->user['id'];
+        if(M('picgroup')->add($data)){
+            $this->success('图集发布成功');
+        }else{
+            $this->error("发布失败");
+        }
+    }
     /*************
      * 栏目管理
      *************/
@@ -201,7 +273,14 @@ class AdminController extends IniController{
             }
         }
     }
-    
+    /************
+     * 异步请求
+     ************/
+    //多图上传
+    public function aj_picGroupUpload(){
+        Vendor('JqueryFileUpload.UploadHandler');
+        $upload_handler = new \UploadHandler();
+    }
     /***********
      * 私有方法
      ***********/

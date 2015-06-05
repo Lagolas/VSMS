@@ -162,7 +162,7 @@
 							</ul>
 						</li>
 
-						<li>
+						<li <php>if(strtolower(ACTION_NAME)=='addpic' || strtolower(ACTION_NAME)=='piclist'){</php>class="active open"<php>}</php>>
 							<a href="#" class="dropdown-toggle">
 								<i class="icon-picture"></i>
 								<span class="menu-text"> 图集管理 </span>
@@ -171,13 +171,13 @@
 							</a>
 
 							<ul class="submenu">
-								<li>
+								<li <php>if(strtolower(ACTION_NAME)=='piclist'){</php>class="active"<php>}</php>>
 									<a href="{:U('admin/picList')}">
 										<i class="icon-double-angle-right"></i>
 										图集列表
 									</a>
 								</li>
-                                <li>
+                                <li <php>if(strtolower(ACTION_NAME)=='addpic'){</php>class="active"<php>}</php>>
 									<a href="{:U('admin/addPic')}">
 										<i class="icon-double-angle-right"></i>
 										发布图集
