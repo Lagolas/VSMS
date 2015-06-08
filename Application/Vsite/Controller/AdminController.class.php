@@ -21,24 +21,22 @@ class AdminController extends IniController{
     public function artList(){
         $where['model'] = 1;
         $catelist = $this->_getCategorys($where);
-        $post_cid= I('post.cid','','intval');
+        $post_cid= I('request.cid','','intval');
         if($post_cid>0){
             $cid = $this->_getSubCate($post_cid, $catelist);
             $where_art['cid'] = array('in',$cid);
         }
-        if(I('post.title')){
-            $tit = I('post.title');
+        $tit = I('request.title');
+        if($tit){
             $where_art['title'] = array('like',"%{$tit}%");
         }
         $db = M('article');
         $where_art['uid'] = $this->user['id'];
         $count = $db->where($where_art)->count();
-        $Page = new \Think\Page($count);
+        $Page = new \Think\Page($count,1);
         $artlist = $db->where($where_art)->field('id,uid,cid,title,ctime,listorder,state')->limit($Page->firstRow.','.$Page->listRows)->order('listorder DESC,id DESC')->select();
-        $cid = I('get.cid')?I('get.cid','','intval'):I('post.cid','','intval');
-        $title = I('get.title')?I('get.title'):I('post.title');
-        $this->assign('cid',$cid);
-        $this->assign('title',$title);
+        $this->assign('cid',$post_cid);
+        $this->assign('title',$tit);
         $this->assign('artlist',$artlist);
         $this->assign('page',$Page->show());
         $this->assign('catelist',$catelist);
@@ -158,8 +156,8 @@ class AdminController extends IniController{
             $cid = $this->_getSubCate($post_cid, $catelist);
             $where_art['cid'] = array('in',$cid);
         }
-        if(I('post.title')){
-            $tit = I('post.title');
+        $tit = I('post.title');
+        if($tit){
             $where_art['title'] = array('like',"%{$tit}%");
         }
         $db = M('picgroup');
@@ -167,10 +165,8 @@ class AdminController extends IniController{
         $count = $db->where($where_art)->count();
         $Page = new \Think\Page($count);
         $piclist = $db->where($where_art)->field('id,uid,cid,title,ctime,listorder,state')->limit($Page->firstRow.','.$Page->listRows)->order('listorder DESC,id DESC')->select();
-        $cid = I('get.cid')?I('get.cid','','intval'):I('post.cid','','intval');
-        $title = I('get.title')?I('get.title'):I('post.title');
-        $this->assign('cid',$cid);
-        $this->assign('title',$title);
+        $this->assign('cid',$post_cid);
+        $this->assign('title',$tit);
         $this->assign('piclist',$piclist);
         $this->assign('page',$Page->show());
         $this->assign('catelist',$catelist);
