@@ -186,10 +186,71 @@ class AdminController extends IniController{
     }
     
     public function editPicGroup(){
-        
+        if(!IS_GET) exit;
+        $id = I('get.id','','intval');
+        if($id<1) $this->error ('参数错误');
+        $where['model'] = 2;
+        $where['state'] = 1;
+        $catelist = $this->_getCategorys($where);
+        $where_pic['id'] = $id;
+        $where_pic['uid'] = $this->user['id'];
+        $pic = M('picgroup')->where($where_pic)->find();
+        $picgroup = unserialize($pic['pics']);
+        foreach ($picgroup as $k=>$v){
+            $picwiththumb[$k]['big'] = $v;
+            $tmp = explode('/', $v);
+            $count = count($tmp);
+            array_splice($tmp,$count-1,0,"thumbnail");
+            $picwiththumb[$k]['thumb'] = implode('/',$tmp);
+            $picwiththumb[$k]['picname'] = end($tmp);
+        }
+        $this->assign('picgroup',$picwiththumb);
+        $this->assign('pic',$pic);
+        $this->assign('catelist',$catelist);
+        $this->display();
     }
     
-    public function delPicGroup(){
+    public function goEditPic(){
+        $where['id'] = I('post.id');
+        if(!$where['id']) $this->error ('参数错误');
+        $where['uid'] = $this->user['id'];
+        $cid = M('picgroup')->where($where)->getField('cid');
+        $model = M('categorys')->where('id='.$cid)->getField('model');
+        if(intval($model) !==2) $this->error ('非法请求');
+        unset($_FILES['files']);
+        if(!IS_POST) exit;
+        //检查必填项以及长度
+        $data['title'] = I('post.title');
+        $data['cid'] = I('post.cid','','intval');
+        if(!$data['title'] || !$data['cid'] || strlen($data['title'])>255){
+            $this->error('标题或栏目不合法');
+        }
+        $checkmodel['id'] = $data['cid'];
+        $checkmodel['uid'] = $this->user['id'];
+        $model = M('categorys')->where($checkmodel)->getField('model');
+        if(intval($model)!==2){$this->error('栏目选择错误');}
+        $data['keyword'] = I('post.keyword');
+        $data['description'] = I('post.description');
+        $data['etime'] = NOW_TIME;
+        $data['content'] = $_POST['editorValue'];
+        $data['listorder'] = I('post.listorder','','intval');
+        $data['pics'] = serialize(I('post.picgroup'));
+        if($_FILES['thumb']['name']){
+            $info = $this->_upload();
+            if($info['state']){
+                $data['thumb'] = UPLOAD_ROOT_PATH.$info['info']['thumb']['savepath'].$info['info']['thumb']['savename'];
+            }else{
+                $this->error($info['info']);
+            }
+        }
+        if(M('picgroup')->where($where)->save($data)){
+            $this->success('图集修改成功');
+        }else{
+            $this->error("修改失败");
+        }
+    }
+
+        public function delPicGroup(){
         $where['id'] = I('get.id','','intval');
         $where['uid'] = $this->user['id'];
         if(M('picgroup')->where($where)->delete()){
@@ -232,6 +293,13 @@ class AdminController extends IniController{
         }else{
             $this->error("发布失败");
         }
+    }
+    
+    /*************
+     * 商品管理
+     *************/
+    public function addGoods(){
+        $this->display();
     }
     /*************
      * 栏目管理
