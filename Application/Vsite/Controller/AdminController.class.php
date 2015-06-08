@@ -250,7 +250,7 @@ class AdminController extends IniController{
         }
     }
 
-        public function delPicGroup(){
+    public function delPicGroup(){
         $where['id'] = I('get.id','','intval');
         $where['uid'] = $this->user['id'];
         if(M('picgroup')->where($where)->delete()){
@@ -298,8 +298,143 @@ class AdminController extends IniController{
     /*************
      * 商品管理
      *************/
+    public function goodsList(){
+        $where['model'] = 3;
+        $catelist = $this->_getCategorys($where);
+        $post_cid= I('request.cid','','intval');
+        if($post_cid>0){
+            $cid = $this->_getSubCate($post_cid, $catelist);
+            $where_goods['cid'] = array('in',$cid);
+        }
+        if(I('request.title')){
+            $tit = I('request.title');
+            $where_goods['title'] = array('like',"%{$tit}%");
+        }
+        if(I('request.state')!==""){
+            $state = I('request.state','','intval');
+            $where_goods['state'] = $state;
+        }
+        $db = M('goods');
+        $where_goods['uid'] = $this->user['id'];
+        $count = $db->where($where_goods)->count();
+        $Page = new \Think\Page($count);
+        $goodsList = $db->where($where_goods)->field('id,uid,cid,title,price,ctime,listorder,state')->limit($Page->firstRow.','.$Page->listRows)->order('listorder DESC,id DESC')->select();
+        $this->assign('cid',$post_cid);
+        $this->assign('title',$tit);
+        $this->assign('state',$state);
+        $this->assign('goodsList',$goodsList);
+        $this->assign('page',$Page->show());
+        $this->assign('catelist',$catelist);
+        $this->display();   
+    }
     public function addGoods(){
+        $where['model'] = 3;
+        $catelist = $this->_getCategorys($where);
+        $this->assign('catelist',$catelist);
         $this->display();
+    }
+    public function goAddGoods(){
+        if(!IS_POST) exit;
+        //检查必填项以及长度
+        $data['title'] = I('post.title');
+        $data['cid'] = I('post.cid','','intval');
+        $data['price'] =  I('post.price','','floatval');
+        if(!$data['title'] || !$data['cid'] || strlen($data['title'])>255){
+            $this->error('商品名称或栏目不合法');
+        }
+        if(!$data['price']) $this->error ('商品价格不能为空');
+        if(!I('post.editorValue')) $this->error ('商品详情不能为空');
+        $checkmodel['id'] = $data['cid'];
+        $checkmodel['uid'] = $this->user['id'];
+        $model = M('categorys')->where($checkmodel)->getField('model');
+        if(intval($model)!==3){$this->error('栏目选择错误');}
+        $data['keyword'] = I('post.keyword');
+        $data['description'] = I('post.description');
+        $data['etime'] = $data['ctime'] = NOW_TIME;
+        $data['content'] = $_POST['editorValue'];
+        $data['listorder'] = I('post.listorder','','intval');
+        $data['state'] = I('post.state','','intval');
+        $data['packagefee'] = I('post.packagefee','','floatval');
+        $data['expressfee'] = I('post.expressfee','','floatval');
+        if($_FILES['thumb']['name']){
+            $info = $this->_upload();
+            if($info['state']){
+                $data['thumb'] = UPLOAD_ROOT_PATH.$info['info']['thumb']['savepath'].$info['info']['thumb']['savename'];
+            }else{
+                $this->error($info['info']);
+            }
+        }
+        $data['uid'] = $this->user['id'];
+        if(M('goods')->add($data)){
+            $this->success('商品添加成功');
+        }else{
+            $this->error("添加失败");
+        }
+    }
+    public function editGoods(){
+        $where['id'] = I('get.id','','intval');
+        $where['uid'] = $this->user['id'];
+        $goods = M('goods')->where($where)->find();
+        if($goods){
+            $where_cate['model'] = 3;
+            $where_cate['state'] = 1;
+            $catelist = $this->_getCategorys($where_cate);
+            $this->assign('catelist',$catelist);
+            $this->assign('goods',$goods);
+            $this->display();
+        }else{
+            $this->error('#404# 世界这么大，怎么也找不到！');
+        }
+    }
+    
+    public function goEditGoods(){
+        if(!IS_POST) exit;
+        //检查必填项以及长度
+        $data['title'] = I('post.title');
+        $data['cid'] = I('post.cid','','intval');
+        $data['price'] =  I('post.price','','floatval');
+        if(!$data['title'] || !$data['cid'] || strlen($data['title'])>255){
+            $this->error('商品名称或栏目不合法');
+        }
+        if(!$data['price']) $this->error ('商品价格不能为空');
+        if(!I('post.editorValue')) $this->error ('商品详情不能为空');
+        $checkmodel['id'] = $data['cid'];
+        $checkmodel['uid'] = $this->user['id'];
+        $model = M('categorys')->where($checkmodel)->getField('model');
+        if(intval($model)!==3){$this->error('栏目选择错误');}
+        $data['keyword'] = I('post.keyword');
+        $data['description'] = I('post.description');
+        $data['etime'] = NOW_TIME;
+        $data['content'] = $_POST['editorValue'];
+        $data['listorder'] = I('post.listorder','','intval');
+        $data['state'] = I('post.state','','intval');
+        $data['packagefee'] = I('post.packagefee','','floatval');
+        $data['expressfee'] = I('post.expressfee','','floatval');
+        if($_FILES['thumb']['name']){
+            $info = $this->_upload();
+            if($info['state']){
+                $data['thumb'] = UPLOAD_ROOT_PATH.$info['info']['thumb']['savepath'].$info['info']['thumb']['savename'];
+            }else{
+                $this->error($info['info']);
+            }
+        }
+        $where['uid'] = $this->user['id'];
+        $where['id'] = I('post.id','','intval');
+        if(M('goods')->where($where)->save($data)){
+            $this->success('商品修改成功');
+        }else{
+            $this->error("修改失败");
+        }
+    }
+
+    public function delGoods(){
+        $where['id'] = I('get.id','','intval');
+        $where['uid'] = $this->user['id'];
+        if(M('goods')->where($where)->delete()){
+            $this->success('删除成功');
+        }else{
+            $this->error('删除失败');
+        }
     }
     /*************
      * 栏目管理
