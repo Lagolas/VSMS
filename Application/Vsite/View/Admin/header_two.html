@@ -162,7 +162,7 @@
 							</ul>
 						</li>
 
-						<li <php>if(strtolower(ACTION_NAME)=='addpic' || strtolower(ACTION_NAME)=='piclist'){</php>class="active open"<php>}</php>>
+						<li <php>if(strtolower(ACTION_NAME)=='addpic' || strtolower(ACTION_NAME)=='piclist' || strtolower(ACTION_NAME)=='editpicgroup'){</php>class="active open"<php>}</php>>
 							<a href="#" class="dropdown-toggle">
 								<i class="icon-picture"></i>
 								<span class="menu-text"> 图集管理 </span>
@@ -171,7 +171,7 @@
 							</a>
 
 							<ul class="submenu">
-								<li <php>if(strtolower(ACTION_NAME)=='piclist'){</php>class="active"<php>}</php>>
+								<li <php>if(strtolower(ACTION_NAME)=='piclist' || strtolower(ACTION_NAME)=='editpicgroup'){</php>class="active"<php>}</php>>
 									<a href="{:U('admin/picList')}">
 										<i class="icon-double-angle-right"></i>
 										图集列表
@@ -186,7 +186,7 @@
 							</ul>
 						</li>
 
-						<li>
+						<li <php>if(strtolower(ACTION_NAME)=='goodslist' || strtolower(ACTION_NAME)=='addgoods' || strtolower(ACTION_NAME)=='editgoods'){</php>class="active open"<php>}</php>>
 							<a href="#" class="dropdown-toggle">
 								<i class="icon-laptop"></i>
 								<span class="menu-text"> 商品管理 </span>
@@ -195,14 +195,14 @@
 							</a>
 
 							<ul class="submenu">
-								<li>
+								<li <php>if(strtolower(ACTION_NAME)=='goodslist'){</php>class="active"<php>}</php>>
 									<a href="{:U('admin/goodsList')}">
 										<i class="icon-double-angle-right"></i>
 										商品列表
 									</a>
 								</li>
 
-								<li>
+								<li <php>if(strtolower(ACTION_NAME)=='addgoods'){</php>class="active"<php>}</php>>
 									<a href="{:U('admin/addGoods')}">
 										<i class="icon-double-angle-right"></i>
 										发布商品
