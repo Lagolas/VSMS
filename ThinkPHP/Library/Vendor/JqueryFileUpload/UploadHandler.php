@@ -86,7 +86,7 @@ class UploadHandler
             'max_file_size' => 150000,
             'min_file_size' => 1,
             // The maximum number of files for the upload directory:
-            'max_number_of_files' => 10,
+            'max_number_of_files' => null,
             // Defines which files are handled as image files:
             'image_file_types' => '/\.(gif|jpe?g|png)$/i',
             // Use exif_imagetype on all files to correct file extensions:
@@ -1318,7 +1318,7 @@ class UploadHandler
                 foreach ($upload['tmp_name'] as $index => $value) {
                     $files[] = $this->handle_file_upload(
                         $upload['tmp_name'][$index],
-                        md5($file_name ? $file_name.time() : $upload['name'][$index].time()),
+                        md5($file_name ? $file_name.time().rand(0,9).rand(0,9).rand(0,9) : $upload['name'][$index].time().rand(0,9).rand(0,9).rand(0,9)),
                         $size ? $size : $upload['size'][$index],
                         $upload['type'][$index],
                         $upload['error'][$index],
